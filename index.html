@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Validador de NIT Guatemala</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin: 0.5rem 0.5rem 0.5rem 0;
+    }
+    .resultado {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    .valido {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+    .copiado {
+      color: blue;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>Calculador de Dígito Verificador NIT (Guatemala)</h1>
+  <label for="nit">Ingrese el número de NIT (sin guion ni dígito):</label><br>
+  <input type="text" id="nit" placeholder="Ej: 3602978" oninput="validarEntrada()"><br>
+  <button onclick="calcularVerificador()">Calcular</button>
+  <button onclick="limpiar()">Limpiar</button>
+  <button onclick="generarNIT()">Generar NIT Aleatorio</button>
+
+  <div class="resultado" id="resultado"></div>
+  <div class="resultado copiado" id="mensajeCopiado"></div>
+
+  <script>
+    function validarEntrada() {
+      const input = document.getElementById('nit').value.trim();
+      const resultado = document.getElementById('resultado');
+
+      if (input === '') {
+        resultado.textContent = '';
+        resultado.className = 'resultado';
+        return;
+      }
+
+      if (!/^\d+$/.test(input)) {
+        resultado.textContent = "Ingrese solo números (sin letras ni guiones).";
+        resultado.className = 'resultado error';
+      } else {
+        resultado.textContent = '';
+        resultado.className = 'resultado';
+      }
+    }
+
+    function calcularVerificador() {
+      const input = document.getElementById('nit').value.trim();
+      const resultado = document.getElementById('resultado');
+
+      if (!/^\d+$/.test(input)) {
+        resultado.textContent = "El NIT debe contener solo números.";
+        resultado.className = 'resultado error';
+        return;
+      }
+
+      const verificador = obtenerDigitoVerificador(input);
+
+      resultado.textContent = `Dígito verificador: ${verificador} | NIT completo: ${input}-${verificador}`;
+      resultado.className = 'resultado valido';
+    }
+
+    function obtenerDigitoVerificador(nit) {
+      let add = 0;
+      for (let i = 0; i < nit.length; i++) {
+        const peso = nit.length - i;
+        add += peso * parseInt(nit[i], 10);
+      }
+      const digit = ((11 - (add % 11)) % 11);
+      return digit === 10 ? 'K' : digit;
+    }
+
+    function limpiar() {
+      document.getElementById('nit').value = '';
+      document.getElementById('resultado').textContent = '';
+      document.getElementById('resultado').className = 'resultado';
+      document.getElementById('mensajeCopiado').textContent = '';
+    }
+
+    function generarNIT() {
+      const numero = Math.floor(1000000 + Math.random() * 9000000).toString(); // 7 dígitos
+      const verificador = obtenerDigitoVerificador(numero);
+      const nitCompleto = `${numero}-${verificador}`;
+
+      document.getElementById('nit').value = numero;
+      document.getElementById('resultado').textContent = `NIT generado: ${nitCompleto}`;
+      document.getElementById('resultado').className = 'resultado valido';
+
+      navigator.clipboard.writeText(nitCompleto)
+        .then(() => {
+          const mensaje = document.getElementById('mensajeCopiado');
+          mensaje.textContent = `¡NIT copiado al portapapeles!`;
+          setTimeout(() => mensaje.textContent = '', 3000);
+        })
+        .catch(() => {
+          document.getElementById('mensajeCopiado').textContent = "No se pudo copiar al portapapeles.";
+        });
+    }
+  </script>
+</body>
+</html>
